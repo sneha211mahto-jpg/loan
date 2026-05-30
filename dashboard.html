@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin Dashboard - Money Solution</title>
+
+<style>
+
+/* GLOBAL */
+*{
+margin:0;
+padding:0;
+box-sizing:border-box;
+font-family:Arial, sans-serif;
+}
+
+body{
+background:#071739;
+color:white;
+}
+
+/* HEADER */
+.header{
+text-align:center;
+padding:20px;
+font-size:30px;
+font-weight:bold;
+color:#D4A017;
+}
+
+/* TOP SECTION */
+.topbar{
+display:flex;
+flex-direction:column;
+align-items:flex-start;
+padding:10px 20px;
+gap:10px;
+}
+
+/* COUNTER */
+.counter{
+font-size:16px;
+font-weight:bold;
+}
+
+/* SEARCH */
+.search-box{
+padding:10px 12px;
+border-radius:10px;
+border:none;
+outline:none;
+width:250px;
+}
+
+/* LOGOUT */
+.logout-btn{
+position:absolute;
+right:20px;
+top:20px;
+background:#D4A017;
+border:none;
+padding:8px 14px;
+border-radius:10px;
+cursor:pointer;
+color:white;
+font-weight:bold;
+}
+
+/* TABLE */
+.container{
+width:95%;
+margin:auto;
+overflow-x:auto;
+padding-bottom:40px;
+margin-top:20px;
+}
+
+table{
+width:100%;
+border-collapse:collapse;
+background:white;
+color:black;
+border-radius:12px;
+overflow:hidden;
+box-shadow:0px 10px 30px rgba(0,0,0,0.3);
+}
+
+th{
+background:#D4A017;
+color:white;
+padding:14px;
+text-transform:uppercase;
+}
+
+td{
+padding:12px;
+text-align:center;
+border-bottom:1px solid #eee;
+}
+
+tr:hover{
+background:#f5f5f5;
+}
+
+.empty{
+text-align:center;
+padding:20px;
+color:white;
+}
+
+</style>
+
+</head>
+
+<body>
+
+<!-- LOGOUT -->
+<button class="logout-btn" onclick="logout()">
+Logout
+</button>
+
+<!-- HEADER -->
+<div class="header">
+📊 Money Solution Admin Dashboard
+</div>
+
+<!-- TOP -->
+<div class="topbar">
+
+<div class="counter">
+Total Leads: <span id="count">0</span>
+</div>
+
+<input 
+type="text" 
+class="search-box" 
+placeholder="Search by Name..."
+onkeyup="searchByName()"
+/>
+
+</div>
+
+<!-- TABLE -->
+<div class="container">
+
+<table>
+
+<thead>
+<tr>
+<th>Name</th>
+<th>Phone Number</th>
+<th>Loan Amount</th>
+<th>Salary</th>
+<th>Loan Type</th>
+</tr>
+</thead>
+
+<tbody id="data">
+<tr>
+<td colspan="5" class="empty">Loading data...</td>
+</tr>
+</tbody>
+
+</table>
+
+</div>
+
+<script>
+
+let allData = [];
+
+// 🔐 CHECK LOGIN (JWT PROTECTION)
+const token = localStorage.getItem("token");
+
+if (!token) {
+  alert("Unauthorized Access ❌ Please login first");
+  window.location.href = "http://localhost:3000/admin.html";
+}
+
+// LOGOUT
+function logout(){
+
+  let confirmLogout = confirm(
+    "Are you sure you want to logout and go back to the Admin Login page?"
+  );
+
+  if(confirmLogout){
+
+    localStorage.removeItem("token");
+
+    window.location.href = "http://localhost:3000/admin.html";
+
+  }
+
+}
+// LOAD DATA (SECURE CALL)
+async function loadData(){
+
+try {
+const res = await fetch("http://localhost:3000/leads", {
+  headers: {
+    "Authorization": token
+  }
+});
+
+allData = await res.json();
+
+document.getElementById("count").innerText = allData.length;
+
+render(allData);
+
+} catch (err) {
+alert("Server Error ❌");
+}
+}
+
+// RENDER TABLE
+function render(data){
+
+if(!data.length){
+document.getElementById("data").innerHTML =
+`<tr><td colspan="5" class="empty">No Data Found</td></tr>`;
+return;
+}
+
+document.getElementById("data").innerHTML = data.map(item => `
+<tr>
+<td>${item.name}</td>
+<td>${item.phone}</td>
+<td>₹ ${item.loan}</td>
+<td>${item.salary}</td>
+<td>${item.loanType}</td>
+</tr>
+`).join("");
+
+}
+
+// SEARCH ONLY NAME
+function searchByName(){
+
+let value = document.querySelector(".search-box").value.toLowerCase();
+
+let filtered = allData.filter(item =>
+item.name.toLowerCase().includes(value)
+);
+
+render(filtered);
+}
+
+loadData();
+
+</script>
+
+</body>
+</html>
