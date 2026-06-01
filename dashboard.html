@@ -284,8 +284,7 @@ notificationSound.play();
 notificationCount++;
 
 
-  let notificationSound = new Audio("./notification.mp3");
-notificationSound.volume = 1;
+  document.getElementById("notifyCount").innerText = notificationCount;
 
   const popup = document.createElement("div");
 
