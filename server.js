@@ -2,6 +2,7 @@ const express = require("express");
 const mongoose = require("mongoose");
 const cors = require("cors");
 const jwt = require("jsonwebtoken");
+const bcrypt = require("bcrypt");
 const http = require("http");
 const { Server } = require("socket.io");
 require("dotenv").config();
@@ -65,14 +66,33 @@ app.post("/enquiry", async (req, res) => {
   }
 });
 
-// ---------------- ADMIN LOGIN ----------------
-app.post("/admin/login", (req, res) => {
+// ---------------- ADMIN LOGIN (SECURE) ----------------
+app.post("/admin/login", async (req, res) => {
   const { email, password } = req.body;
 
-  const isGmail = email.endsWith("@gmail.com");
-  const isPasswordCorrect = password === "261991";
+  try {
+    // email check
+    if (email !== process.env.ADMIN_EMAIL) {
+      return res.status(401).json({
+        success: false,
+        message: "Invalid login"
+      });
+    }
 
-  if (isGmail && isPasswordCorrect) {
+    // password check (bcrypt)
+    const isMatch = await bcrypt.compare(
+      password,
+      process.env.ADMIN_PASSWORD_HASH
+    );
+
+    if (!isMatch) {
+      return res.status(401).json({
+        success: false,
+        message: "Invalid login"
+      });
+    }
+
+    // token generate
     const token = jwt.sign(
       { email },
       process.env.JWT_SECRET,
@@ -83,12 +103,13 @@ app.post("/admin/login", (req, res) => {
       success: true,
       token
     });
-  }
 
-  return res.status(401).json({
-    success: false,
-    message: "Invalid login"
-  });
+  } catch (err) {
+    return res.status(500).json({
+      success: false,
+      message: "Server error"
+    });
+  }
 });
 
 // ---------------- TOKEN MIDDLEWARE ----------------
@@ -120,16 +141,14 @@ app.get("/leads", verifyToken, async (req, res) => {
     const data = await Enquiry.find().sort({ createdAt: -1 });
     res.json(data);
   } catch (err) {
-    res.status(500).json({ success: false, message: "Error fetching leads" });
+    res.status(500).json({ success: false });
   }
 });
 
-// ---------------- DELETE LEAD API (FIXED) ----------------
+// ---------------- DELETE LEAD API ----------------
 app.delete("/leads/:id", verifyToken, async (req, res) => {
   try {
-    const id = req.params.id;
-
-    await Enquiry.findByIdAndDelete(id);
+    await Enquiry.findByIdAndDelete(req.params.id);
 
     res.json({
       success: true,
@@ -139,7 +158,7 @@ app.delete("/leads/:id", verifyToken, async (req, res) => {
   } catch (err) {
     res.status(500).json({
       success: false,
-      error: err.message
+      message: "Error"
     });
   }
 });
