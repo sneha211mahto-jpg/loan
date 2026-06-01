@@ -23,7 +23,7 @@ app.use(express.static(__dirname));
 // ---------------- MONGODB ----------------
 mongoose.connect(process.env.MONGO_URL)
   .then(() => console.log("MongoDB Connected 🚀"))
-  .catch(err => console.log(err));
+  .catch(err => console.log("MongoDB Error:", err));
 
 // ---------------- SOCKET ----------------
 io.on("connection", (socket) => {
@@ -59,19 +59,26 @@ app.post("/enquiry", async (req, res) => {
       loanAmount: data.loan
     });
 
-    res.json({ success: true, message: "Enquiry saved" });
+    return res.status(201).json({
+      success: true,
+      message: "Enquiry saved successfully"
+    });
 
   } catch (err) {
-    res.json({ success: false, message: "Error saving enquiry" });
+    console.log("ENQUIRY ERROR:", err); // 🔥 DEBUG LOG
+
+    return res.status(500).json({
+      success: false,
+      message: "Error saving enquiry"
+    });
   }
 });
 
-// ---------------- ADMIN LOGIN (SECURE) ----------------
+// ---------------- ADMIN LOGIN ----------------
 app.post("/admin/login", async (req, res) => {
   const { email, password } = req.body;
 
   try {
-    // email check
     if (email !== process.env.ADMIN_EMAIL) {
       return res.status(401).json({
         success: false,
@@ -79,7 +86,6 @@ app.post("/admin/login", async (req, res) => {
       });
     }
 
-    // password check (bcrypt)
     const isMatch = await bcrypt.compare(
       password,
       process.env.ADMIN_PASSWORD_HASH
@@ -92,7 +98,6 @@ app.post("/admin/login", async (req, res) => {
       });
     }
 
-    // token generate
     const token = jwt.sign(
       { email },
       process.env.JWT_SECRET,
@@ -105,6 +110,8 @@ app.post("/admin/login", async (req, res) => {
     });
 
   } catch (err) {
+    console.log("LOGIN ERROR:", err);
+
     return res.status(500).json({
       success: false,
       message: "Server error"
@@ -141,11 +148,16 @@ app.get("/leads", verifyToken, async (req, res) => {
     const data = await Enquiry.find().sort({ createdAt: -1 });
     res.json(data);
   } catch (err) {
-    res.status(500).json({ success: false });
+    console.log("LEADS ERROR:", err);
+
+    res.status(500).json({
+      success: false,
+      message: "Error fetching leads"
+    });
   }
 });
 
-// ---------------- DELETE LEAD API ----------------
+// ---------------- DELETE LEAD ----------------
 app.delete("/leads/:id", verifyToken, async (req, res) => {
   try {
     await Enquiry.findByIdAndDelete(req.params.id);
@@ -156,9 +168,11 @@ app.delete("/leads/:id", verifyToken, async (req, res) => {
     });
 
   } catch (err) {
+    console.log("DELETE ERROR:", err);
+
     res.status(500).json({
       success: false,
-      message: "Error"
+      message: "Error deleting lead"
     });
   }
 });
