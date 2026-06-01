@@ -2,9 +2,18 @@ const express = require("express");
 const mongoose = require("mongoose");
 const cors = require("cors");
 const jwt = require("jsonwebtoken");
+const http = require("http");
+const { Server } = require("socket.io");
 require("dotenv").config();
 
 const app = express();
+const server = http.createServer(app);
+
+const io = new Server(server, {
+  cors: {
+    origin: "*"
+  }
+});
 
 // ---------------- MIDDLEWARE ----------------
 app.use(cors());
@@ -18,6 +27,15 @@ app.use(express.static(__dirname));
 mongoose.connect(process.env.MONGO_URL)
 .then(() => console.log("MongoDB Connected 🚀"))
 .catch(err => console.log(err));
+
+// ---------------- SOCKET.IO ----------------
+io.on("connection", (socket) => {
+  console.log("Client Connected:", socket.id);
+
+  socket.on("disconnect", () => {
+    console.log("Client Disconnected:", socket.id);
+  });
+});
 
 // ---------------- SCHEMA ----------------
 const enquirySchema = new mongoose.Schema({
@@ -37,10 +55,19 @@ app.post("/enquiry", async (req, res) => {
     const data = new Enquiry(req.body);
     await data.save();
 
+    // 🔔 Real-time notification
+    io.emit("newLead", {
+      name: data.name,
+      phone: data.phone,
+      loanType: data.loanType,
+      loanAmount: data.loan
+    });
+
     res.json({
       success: true,
       message: "Enquiry saved"
     });
+
   } catch (err) {
     res.json({
       success: false,
@@ -49,17 +76,15 @@ app.post("/enquiry", async (req, res) => {
   }
 });
 
-// ---------------- ADMIN LOGIN (GMAIL + FIXED PASSWORD + JWT) ----------------
+// ---------------- ADMIN LOGIN ----------------
 app.post("/admin/login", (req, res) => {
   const { email, password } = req.body;
 
-  // 🔥 RULE 1: must be gmail
   const isGmail = email.endsWith("@gmail.com");
-
-  // 🔥 RULE 2: fixed password
   const isPasswordCorrect = password === "261991";
 
   if (isGmail && isPasswordCorrect) {
+
     const token = jwt.sign(
       { email },
       process.env.JWT_SECRET,
@@ -69,7 +94,7 @@ app.post("/admin/login", (req, res) => {
     return res.json({
       success: true,
       message: "Login successful",
-      token: token
+      token
     });
   }
 
@@ -81,6 +106,7 @@ app.post("/admin/login", (req, res) => {
 
 // ---------------- TOKEN MIDDLEWARE ----------------
 function verifyToken(req, res, next) {
+
   const token = req.headers["authorization"];
 
   if (!token) {
@@ -91,10 +117,17 @@ function verifyToken(req, res, next) {
   }
 
   try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+
+    const decoded = jwt.verify(
+      token,
+      process.env.JWT_SECRET
+    );
+
     req.user = decoded;
     next();
+
   } catch (err) {
+
     return res.status(401).json({
       success: false,
       message: "Invalid token"
@@ -102,12 +135,17 @@ function verifyToken(req, res, next) {
   }
 }
 
-// ---------------- LEADS API (PROTECTED) ----------------
+// ---------------- LEADS API ----------------
 app.get("/leads", verifyToken, async (req, res) => {
   try {
-    const data = await Enquiry.find().sort({ createdAt: -1 });
+
+    const data = await Enquiry.find()
+      .sort({ createdAt: -1 });
+
     res.json(data);
+
   } catch (err) {
+
     res.status(500).json({
       success: false,
       message: "Error fetching leads"
@@ -117,14 +155,18 @@ app.get("/leads", verifyToken, async (req, res) => {
 
 // ---------------- DASHBOARD ----------------
 app.get("/admin/dashboard", verifyToken, (req, res) => {
+
   res.json({
     success: true,
     message: "Welcome Admin 🚀",
     user: req.user
   });
+
 });
 
 // ---------------- SERVER ----------------
-app.listen(process.env.PORT || 3000, () => {
-  console.log(`Server running on http://localhost:${process.env.PORT || 3000}`);
+const PORT = process.env.PORT || 3000;
+
+server.listen(PORT, () => {
+  console.log(`Server running on http://localhost:${PORT}`);
 });
