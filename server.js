@@ -121,13 +121,18 @@ app.post("/admin/login", async (req, res) => {
 
 // ---------------- TOKEN MIDDLEWARE ----------------
 function verifyToken(req, res, next) {
-  const token = req.headers["authorization"];
+  let token = req.headers["authorization"];
 
   if (!token) {
     return res.status(403).json({
       success: false,
       message: "Token missing"
     });
+  }
+
+  // REMOVE "Bearer " if present
+  if (token.startsWith("Bearer ")) {
+    token = token.split(" ")[1];
   }
 
   try {
@@ -141,7 +146,6 @@ function verifyToken(req, res, next) {
     });
   }
 }
-
 // ---------------- LEADS API ----------------
 app.get("/leads", verifyToken, async (req, res) => {
   try {

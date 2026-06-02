@@ -265,7 +265,9 @@ onkeyup="searchByName()"
 
 </div>
 <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
+
 <script>
+  const socket = io("https://loan-bxtx.onrender.com");
   let notificationSound = new Audio("notification.mp3");
   
 
@@ -331,16 +333,19 @@ function logout(){
   }
 }
 // LOAD DATA (SECURE CALL)
+console.log("TOKEN:", localStorage.getItem("token"));
 async function loadData(){
 
 try {
 const res = await fetch("https://loan-bxtx.onrender.com/leads", {
   headers: {
-    "Authorization": token
+    "Authorization": `Bearer ${token}`
   }
 });
+console.log("API Response:", res);
 
 allData = await res.json();
+console.log("ALL DATA:", allData);
 
 document.getElementById("count").innerText = allData.length;
 
@@ -401,7 +406,7 @@ async function deleteLead(id) {
     let res = await fetch("https://loan-bxtx.onrender.com/leads/" + id, {
       method: "DELETE",
       headers: {
-        "Authorization": token
+        "Authorization": `Bearer ${token}`
       }
     });
 
