@@ -208,152 +208,154 @@
     </table>
   </div>
 
-  <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
-  <script>
-    const socket = io("https://loan-bxtx.onrender.com");
-    let notificationSound = new Audio("notification.mp3");
-    
-    let allData = [];
-    let notifications = [];
-    let notificationCount = 0;
 
-    // 🔐 CHECK LOGIN (JWT PROTECTION)
-    const token = localStorage.getItem("token");
-    if (!token) {
-      alert("Unauthorized Access ❌ Please login first");
+
+
+<script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
+
+<script>
+  // 1. Sabse pehle socket ko initialize karo
+  const socket = io("https://loan-bxtx.onrender.com");
+  
+  // 2. Global variables
+  let allData = [];
+  let notifications = [];
+  let notificationCount = 0;
+  let notificationSound = new Audio("notification.mp3");
+
+  // 3. Socket real-time event listener (Notification & Sound)
+  socket.on("newLead", (data) => {
+    console.log("New realtime lead received:", data);
+    notifications.unshift(data);
+    
+    if (notifications.length > 10) notifications.pop();
+
+    try {
+      notificationSound.currentTime = 0;
+      notificationSound.play();
+    } catch(e) { console.log("Audio play blocked"); }
+
+    notificationCount++;
+    document.getElementById("notifyCount").innerText = notificationCount;
+
+    // Toast Popup
+    const popup = document.createElement("div");
+    popup.className = "toast";
+    popup.innerHTML = `
+      <h3>🔔 New Lead Received</h3>
+      <p><b>${data.name || 'Someone'}</b> has applied for a <b>${data.loanType || 'Loan'}</b> of <b>₹${data.loan || '0'}</b></p>
+      <p>📞 ${data.phone || 'N/A'}</p>
+    `;
+    document.body.appendChild(popup);
+    setTimeout(() => popup.remove(), 6000);
+
+    // Table reload karo jab naya data aaye
+    loadData();
+  });
+
+  // 4. JWT Authorization Token Check
+  const token = localStorage.getItem("token");
+  if (!token) {
+    alert("Unauthorized Access ❌ Please login first");
+    window.location.href = "https://loan-bxtx.onrender.com/admin.html";
+  }
+
+  // 5. Load Data from Backend API
+  async function loadData() {
+    try {
+      const res = await fetch("https://loan-bxtx.onrender.com/leads", {
+        headers: { "Authorization": `Bearer ${token}` }
+      });
+      allData = await res.json();
+      document.getElementById("count").innerText = allData.length;
+      render(allData);
+    } catch (err) {
+      alert("Server Error ❌");
+    }
+  }
+
+  // 6. Render Data to HTML Table
+  function render(data) {
+    const tbody = document.getElementById("data");
+    if (!data || !data.length) {
+      tbody.innerHTML = `<tr><td colspan="7" class="empty">No Data Found</td></tr>`;
+      return;
+    }
+    tbody.innerHTML = data.map((item, index) => `
+      <tr>
+        <td>${index + 1}</td>
+        <td>${item.name || 'N/A'}</td>
+        <td>${item.phone || 'N/A'}</td>
+        <td>₹ ${item.loan || '0'}</td>
+        <td>${item.salary || 'N/A'}</td>
+        <td>${item.loanType || 'N/A'}</td>
+        <td>
+          <button onclick="deleteLead('${item._id}')" style="background:red;color:white;border:none;padding:5px 10px;border-radius:5px;cursor:pointer;">Delete</button>
+        </td>
+      </tr>
+    `).join("");
+  }
+
+  // 7. Search Only Name Function
+  function searchByName(){
+    let value = document.querySelector(".search-box").value.toLowerCase();
+    let filtered = allData.filter(item => 
+      item.name && item.name.toLowerCase().includes(value)
+    );
+    render(filtered);
+  }
+
+  // 8. Delete Lead Function
+  async function deleteLead(id) {
+    let confirmDelete = confirm("Delete this lead?");
+    if (!confirmDelete) return;
+
+    try {
+      let res = await fetch("https://loan-bxtx.onrender.com/leads/" + id, {
+        method: "DELETE",
+        headers: { "Authorization": `Bearer ${token}` }
+      });
+      let data = await res.json();
+      if (data.success || res.status === 200) {
+        alert("Deleted ✅");
+        loadData();
+      } else {
+        alert("Delete failed ❌");
+      }
+    } catch (error) {
+      alert("Server error ❌");
+    }
+  }
+
+  // 9. Notification Panel Toggle Click Event
+  document.querySelector(".notification-bell").addEventListener("click", () => {
+    const panel = document.getElementById("notifyPanel");
+    if (panel.style.display === "block") {
+      panel.style.display = "none";
+      return;
+    }
+    panel.style.display = "block";
+    panel.innerHTML = notifications.length
+      ? notifications.map(n => `
+        <div class="notification-item">
+          <b>${n.name}</b><br>
+          ${n.loanType} - ₹${n.loan || '0'}<br>
+          📞 ${n.phone}
+        </div>
+      `).join("")
+      : "<div class='notification-item' style='text-align:center;'>No new notifications</div>";
+  });
+
+  // 10. Logout Function
+  function logout(){
+    if(confirm("Are you sure you want to logout?")){
+      localStorage.removeItem("token");
       window.location.href = "https://loan-bxtx.onrender.com/admin.html";
     }
+  }
 
-    // LOAD DATA FROM API
-    async function loadData() {
-      try {
-        console.log("Fetching leads...");
-        const res = await fetch("https://loan-bxtx.onrender.com/leads", {
-          headers: { "Authorization": `Bearer ${token}` }
-        });
-        
-        console.log("API Response Status:", res.status);
-        allData = await res.json();
-        console.log("ALL DATA RECEIVED:", allData);
-
-        document.getElementById("count").innerText = allData.length;
-        render(allData);
-      } catch (err) {
-        console.error(err);
-        alert("Server Error ❌ Data fetch failed.");
-      }
-    }
-
-    // RENDER TABLE DATA
-    function render(data) {
-      const tbody = document.getElementById("data");
-      if (!data || !data.length) {
-        tbody.innerHTML = `<tr><td colspan="7" class="empty">No Data Found</td></tr>`;
-        return;
-      }
-
-      tbody.innerHTML = data.map((item, index) => `
-        <tr>
-          <td>${index + 1}</td>
-          <td>${item.name || 'N/A'}</td>
-          <td>${item.phone || 'N/A'}</td>
-          <td>₹ ${item.loanAmount || item.loan || '0'}</td> <td>${item.salary || 'N/A'}</td>
-          <td>${item.loanType || 'N/A'}</td>
-          <td>
-            <button onclick="deleteLead('${item._id}')" 
-              style="background:red;color:white;border:none;padding:5px 10px;border-radius:5px;cursor:pointer;">
-              Delete
-            </button>
-          </td>
-        </tr>
-      `).join("");
-    }
-
-    // SOCKET REALTIME UPDATE
-    socket.on("newLead", (data) => {
-      console.log("New realtime lead received:", data);
-      notifications.unshift(data);
-      if (notifications.length > 10) notifications.pop();
-
-      try {
-        notificationSound.currentTime = 0;
-        notificationSound.play();
-      } catch(e) { console.log("Audio play blocked by browser"); }
-
-      notificationCount++;
-      document.getElementById("notifyCount").innerText = notificationCount;
-
-      // Toast Notification
-      const popup = document.createElement("div");
-      popup.className = "toast";
-      popup.innerHTML = `
-        <h3>🔔 New Lead Received</h3>
-        <p><b>${data.name}</b> has applied for a <b>${data.loanType}</b> of <b>₹${data.loanAmount || data.loan}</b></p>
-        <p>📞 ${data.phone}</p>
-      `;
-      document.body.appendChild(popup);
-      setTimeout(() => popup.remove(), 6000);
-
-      // Reload list automatically
-      loadData();
-    });
-
-    // SEARCH BY NAME
-    function searchByName() {
-      let value = document.querySelector(".search-box").value.toLowerCase();
-      let filtered = allData.filter(item => item.name && item.name.toLowerCase().includes(value));
-      render(filtered);
-    }
-
-    // DELETE LEAD
-    async function deleteLead(id) {
-      if (!confirm("Delete this lead?")) return;
-      try {
-        let res = await fetch("https://loan-bxtx.onrender.com/leads/" + id, {
-          method: "DELETE",
-          headers: { "Authorization": `Bearer ${token}` }
-        });
-        let data = await res.json();
-        if (data.success || res.status === 200) {
-          alert("Deleted ✅");
-          loadData();
-        } else {
-          alert("Delete failed ❌");
-        }
-      } catch (error) {
-        alert("Server error ❌");
-      }
-    }
-
-    // NOTIFICATION PANEL TOGGLE
-    document.querySelector(".notification-bell").addEventListener("click", () => {
-      const panel = document.getElementById("notifyPanel");
-      if (panel.style.display === "block") {
-        panel.style.display = "none";
-        return;
-      }
-      panel.style.display = "block";
-      panel.innerHTML = notifications.length
-        ? notifications.map(n => `
-          <div class="notification-item">
-            <b>${n.name}</b><br>
-            ${n.loanType} - ₹${n.loanAmount || n.loan}<br>
-            📞 ${n.phone}
-          </div>
-        `).join("")
-        : "<div class='notification-item'>No new notifications</div>";
-    });
-
-    // LOGOUT
-    function logout() {
-      if (confirm("Are you sure you want to logout?")) {
-        localStorage.removeItem("token");
-        window.location.href = "https://loan-bxtx.onrender.com/admin.html";
-      }
-    }
-
-    // Initial Trigger on Page Load
-    loadData();
-  </script>
+  // Initial call page load par data laane ke liye
+  loadData();
+</script>
 </body>
 </html>
