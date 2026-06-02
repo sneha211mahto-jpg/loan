@@ -2,451 +2,358 @@
 <html lang="en">
 
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Admin Dashboard - Money Solution</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Dashboard - Money Solution</title>
 
-<style>
-  .notification-bell{
-position:absolute;
-top:20px;
-right:120px;
-font-size:24px;
-cursor:pointer;
-}
+  <style>
+    /* GLOBAL */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: Arial, sans-serif;
+    }
 
-.notification-count{
-background:red;
-color:white;
-border-radius:50%;
-padding:2px 8px;
-font-size:12px;
-position:relative;
-top:-12px;
-left:-5px;
-}
+    body {
+      background: #071739;
+      color: white;
+    }
 
-.toast{
-position:fixed;
-top:80px;
-right:20px;
-background:white;
-color:black;
-padding:15px;
-width:320px;
-border-radius:12px;
-box-shadow:0 5px 20px rgba(0,0,0,0.3);
-z-index:9999;
-}
+    /* HEADER */
+    .header {
+      text-align: center;
+      padding: 20px;
+      font-size: 30px;
+      font-weight: bold;
+      color: #D4A017;
+    }
 
-/* GLOBAL */
-*{
-margin:0;
-padding:0;
-box-sizing:border-box;
-font-family:Arial, sans-serif;
-}
+    /* TOP SECTION */
+    .topbar {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      padding: 10px 20px;
+      gap: 10px;
+    }
 
-body{
-background:#071739;
-color:white;
-}
+    /* COUNTER */
+    .counter {
+      font-size: 16px;
+      font-weight: bold;
+    }
 
-/* HEADER */
-.header{
-text-align:center;
-padding:20px;
-font-size:30px;
-font-weight:bold;
-color:#D4A017;
-}
+    /* SEARCH */
+    .search-box {
+      padding: 10px 12px;
+      border-radius: 10px;
+      border: none;
+      outline: none;
+      width: 250px;
+    }
 
-/* TOP SECTION */
-.topbar{
-display:flex;
-flex-direction:column;
-align-items:flex-start;
-padding:10px 20px;
-gap:10px;
-}
+    /* LOGOUT */
+    .logout-btn {
+      position: absolute;
+      right: 20px;
+      top: 20px;
+      background: #D4A017;
+      border: none;
+      padding: 8px 14px;
+      border-radius: 10px;
+      cursor: pointer;
+      color: white;
+      font-weight: bold;
+    }
 
-/* COUNTER */
-.counter{
-font-size:16px;
-font-weight:bold;
-}
+    /* TABLE */
+    .container {
+      width: 95%;
+      margin: auto;
+      overflow-x: auto;
+      padding-bottom: 40px;
+      margin-top: 20px;
+    }
 
-/* SEARCH */
-.search-box{
-padding:10px 12px;
-border-radius:10px;
-border:none;
-outline:none;
-width:250px;
-}
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: white;
+      color: black;
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0px 10px 30px rgba(0, 0, 0, 0.3);
+    }
 
-/* LOGOUT */
-.logout-btn{
-position:absolute;
-right:20px;
-top:20px;
-background:#D4A017;
-border:none;
-padding:8px 14px;
-border-radius:10px;
-cursor:pointer;
-color:white;
-font-weight:bold;
-}
+    th {
+      background: #D4A017;
+      color: white;
+      padding: 14px;
+      text-transform: uppercase;
+    }
 
-/* TABLE */
-.container{
-width:95%;
-margin:auto;
-overflow-x:auto;
-padding-bottom:40px;
-margin-top:20px;
-}
+    td {
+      padding: 12px;
+      text-align: center;
+      border-bottom: 1px solid #eee;
+    }
 
-table{
-width:100%;
-border-collapse:collapse;
-background:white;
-color:black;
-border-radius:12px;
-overflow:hidden;
-box-shadow:0px 10px 30px rgba(0,0,0,0.3);
-}
+    tr:hover {
+      background: #f5f5f5;
+    }
 
-th{
-background:#D4A017;
-color:white;
-padding:14px;
-text-transform:uppercase;
-}
+    .empty {
+      text-align: center;
+      padding: 20px;
+      color: white;
+    }
 
-td{
-padding:12px;
-text-align:center;
-border-bottom:1px solid #eee;
-}
+    .notification-bell {
+      position: absolute;
+      top: 20px;
+      right: 120px;
+      font-size: 24px;
+      cursor: pointer;
+    }
 
-tr:hover{
-background:#f5f5f5;
-}
+    .notification-count {
+      background: red;
+      color: white;
+      border-radius: 50%;
+      padding: 2px 8px;
+      font-size: 12px;
+      position: relative;
+      top: -12px;
+      left: -5px;
+    }
 
-.empty{
-text-align:center;
-padding:20px;
-color:white;
-}
-.notification-bell{
-position:absolute;
-top:20px;
-right:120px;
-font-size:24px;
-cursor:pointer;
-}
+    .toast {
+      position: fixed;
+      top: 80px;
+      right: 20px;
+      background: white;
+      color: black;
+      padding: 15px;
+      width: 320px;
+      border-radius: 12px;
+      box-shadow: 0 5px 20px rgba(0, 0, 0, 0.3);
+      z-index: 9999;
+      animation: slideIn .4s ease;
+    }
 
-.notification-count{
-background:red;
-color:white;
-border-radius:50%;
-padding:2px 8px;
-font-size:12px;
-position:relative;
-top:-12px;
-left:-5px;
-}
+    .notification-panel {
+      position: absolute;
+      top: 60px;
+      right: 20px;
+      width: 320px;
+      background: white;
+      color: black;
+      border-radius: 10px;
+      box-shadow: 0 5px 20px rgba(0, 0, 0, 0.3);
+      display: none;
+      max-height: 300px;
+      overflow-y: auto;
+      z-index: 9999;
+    }
 
-.toast{
-position:fixed;
-top:80px;
-right:20px;
-background:white;
-color:black;
-padding:15px;
-width:320px;
-border-radius:12px;
-box-shadow:0 5px 20px rgba(0,0,0,0.3);
-z-index:9999;
-animation:slideIn .4s ease;
-}
-.notification-panel{
-position:absolute;
-top:60px;
-right:20px;
-width:320px;
-background:white;
-color:black;
-border-radius:10px;
-box-shadow:0 5px 20px rgba(0,0,0,0.3);
-display:none;
-max-height:300px;
-overflow-y:auto;
-z-index:9999;
-}
+    .notification-item {
+      padding: 10px;
+      border-bottom: 1px solid #eee;
+      font-size: 14px;
+    }
 
-.notification-item{
-padding:10px;
-border-bottom:1px solid #eee;
-font-size:14px;
-}
-
-@keyframes slideIn{
-from{
-transform:translateX(100%);
-}
-to{
-transform:translateX(0);
-}
-}
-
-</style>
-
+    @keyframes slideIn {
+      from {
+        transform: translateX(100%);
+      }
+      to {
+        transform: translateX(0);
+      }
+    }
+  </style>
 </head>
 
 <body>
 
-<!-- LOGOUT -->
-<button class="logout-btn" onclick="logout()">
-Logout
-</button>
+  <button class="logout-btn" onclick="logout()">Logout</button>
 
-<!-- HEADER -->
-<div class="header">
-📊 Money Solution Admin Dashboard
-</div>
-<div class="notification-bell">
-🔔 <span class="notification-count" id="notifyCount">0</span>
-</div>
-<div class="notification-panel" id="notifyPanel"></div>
+  <div class="header">📊 Money Solution Admin Dashboard</div>
+  <div class="notification-bell">🔔 <span class="notification-count" id="notifyCount">0</span></div>
+  <div class="notification-panel" id="notifyPanel"></div>
 
-<!-- TOP -->
-<div class="topbar">
+  <div class="topbar">
+    <div class="counter">Total Leads: <span id="count">0</span></div>
+    <input type="text" class="search-box" placeholder="Search by Name..." onkeyup="searchByName()" />
+  </div>
 
-<div class="counter">
-Total Leads: <span id="count">0</span>
-</div>
+  <div class="container">
+    <table>
+      <thead>
+        <tr>
+          <th>Sr No.</th>
+          <th>Name</th>
+          <th>Phone Number</th>
+          <th>Loan Amount</th>
+          <th>Salary</th>
+          <th>Loan Type</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+      <tbody id="data">
+        <tr>
+          <td colspan="7" class="empty">Loading data...</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
 
-<input 
-type="text" 
-class="search-box" 
-placeholder="Search by Name..."
-onkeyup="searchByName()"
-/>
+  <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
+  <script>
+    const socket = io("https://loan-bxtx.onrender.com");
+    let notificationSound = new Audio("notification.mp3");
+    
+    let allData = [];
+    let notifications = [];
+    let notificationCount = 0;
 
-</div>
-
-<!-- TABLE -->
-<div class="container">
-
-<table>
-
-<thead>
-<tr>
-<th>Sr No.</th>
-<th>Name</th>
-<th>Phone Number</th>
-<th>Loan Amount</th>
-<th>Salary</th>
-<th>Loan Type</th>
-<th>Action</th>
-</tr>
-</thead>
-
-<tbody id="data">
-<tr>
-<td colspan="7" class="empty">Loading data...</td>
-</tr>
-</tbody>
-
-</table>
-
-</div>
-<script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
-
-<script>
-  const socket = io("https://loan-bxtx.onrender.com");
-  let notificationSound = new Audio("notification.mp3");
-  
-
-let notificationCount = 0;
-
-socket.on("newLead", (data) => {
-  notifications.unshift(data);
-
-if (notifications.length > 10) {
-  notifications.pop();
-}
-
-notificationSound.currentTime = 0;
-notificationSound.play();
-
-notificationCount++;
-
-
-  document.getElementById("notifyCount").innerText = notificationCount;
-
-  const popup = document.createElement("div");
-
-  popup.className = "toast";
-
-  popup.innerHTML = `
-    <h3>🔔 New Lead Received</h3>
-    <p><b>${data.name}</b> has applied for a <b>${data.loanType}</b> of <b>₹${data.loanAmount}</b></p>
-    <p>📞 ${data.phone}</p>
-  `;
-
-  document.body.appendChild(popup);
-
-  setTimeout(() => {
-    popup.remove();
-  }, 6000);
-
-  loadData();
-});
-let allData = [];
-let notifications = [];
-
-// 🔐 CHECK LOGIN (JWT PROTECTION)
-const token = localStorage.getItem("token");
-
-if (!token) {
-  alert("Unauthorized Access ❌ Please login first");
-  window.location.href = "https://loan-bxtx.onrender.com/admin.html";
-}
-
-// LOGOUT
-function logout(){
-
-  let confirmLogout = confirm(
-    "Are you sure you want to logout and go back to the Admin Login page?"
-  );
-
-  if(confirmLogout){
-
-    localStorage.removeItem("token");
-
-    window.location.href = "https://loan-bxtx.onrender.com/admin.html";
-
-  }
-}
-// LOAD DATA (SECURE CALL)
-console.log("TOKEN:", localStorage.getItem("token"));
-async function loadData(){
-
-try {
-const res = await fetch("https://loan-bxtx.onrender.com/leads", {
-  headers: {
-    "Authorization": `Bearer ${token}`
-  }
-});
-console.log("API Response:", res);
-
-allData = await res.json();
-console.log("ALL DATA:", allData);
-
-document.getElementById("count").innerText = allData.length;
-
-render(allData);
-
-} catch (err) {
-alert("Server Error ❌");
-}
-}
-
-function render(data){
-
-if(!data.length){
-document.getElementById("data").innerHTML =
-`<tr><td colspan="7" class="empty">No Data Found</td></tr>`;
-return;
-}
-
-document.getElementById("data").innerHTML = data.map((item,index) => `
-<tr>
-<td>${index + 1}</td>
-<td>${item.name}</td>
-<td>${item.phone}</td>
-<td>₹ ${item.loan}</td>
-<td>${item.salary}</td>
-<td>${item.loanType}</td>
-<td>
-  <button onclick="deleteLead('${item._id}')" 
-  style="background:red;color:white;border:none;padding:5px 10px;border-radius:5px;cursor:pointer;">
-    Delete
-  </button>
-</td>
-</tr>
-`).join("");
-
-}
-// SEARCH ONLY NAME
-function searchByName(){
-
-let value = document.querySelector(".search-box").value.toLowerCase();
-
-let filtered = allData.filter(item =>
-item.name.toLowerCase().includes(value)
-);
-
-render(filtered);
-}
-
-loadData();
-async function deleteLead(id) {
-
-  let confirmDelete = confirm("Delete this lead?");
-
-  if (!confirmDelete) return;
-
-  try {
-
-    let res = await fetch("https://loan-bxtx.onrender.com/leads/" + id, {
-      method: "DELETE",
-      headers: {
-        "Authorization": `Bearer ${token}`
-      }
-    });
-
-    let data = await res.json();
-
-    if (data.success) {
-      alert("Deleted ✅");
-      loadData();
-    } else {
-      alert("Delete failed ❌");
+    // 🔐 CHECK LOGIN (JWT PROTECTION)
+    const token = localStorage.getItem("token");
+    if (!token) {
+      alert("Unauthorized Access ❌ Please login first");
+      window.location.href = "https://loan-bxtx.onrender.com/admin.html";
     }
 
-  } catch (error) {
-    alert("Server error ❌");
-  }
+    // LOAD DATA FROM API
+    async function loadData() {
+      try {
+        console.log("Fetching leads...");
+        const res = await fetch("https://loan-bxtx.onrender.com/leads", {
+          headers: { "Authorization": `Bearer ${token}` }
+        });
+        
+        console.log("API Response Status:", res.status);
+        allData = await res.json();
+        console.log("ALL DATA RECEIVED:", allData);
 
-}
-document.querySelector(".notification-bell").addEventListener("click", () => {
+        document.getElementById("count").innerText = allData.length;
+        render(allData);
+      } catch (err) {
+        console.error(err);
+        alert("Server Error ❌ Data fetch failed.");
+      }
+    }
 
-const panel = document.getElementById("notifyPanel");
+    // RENDER TABLE DATA
+    function render(data) {
+      const tbody = document.getElementById("data");
+      if (!data || !data.length) {
+        tbody.innerHTML = `<tr><td colspan="7" class="empty">No Data Found</td></tr>`;
+        return;
+      }
 
-if (panel.style.display === "block") {
-  panel.style.display = "none";
-  return;
-}
+      tbody.innerHTML = data.map((item, index) => `
+        <tr>
+          <td>${index + 1}</td>
+          <td>${item.name || 'N/A'}</td>
+          <td>${item.phone || 'N/A'}</td>
+          <td>₹ ${item.loanAmount || item.loan || '0'}</td> <td>${item.salary || 'N/A'}</td>
+          <td>${item.loanType || 'N/A'}</td>
+          <td>
+            <button onclick="deleteLead('${item._id}')" 
+              style="background:red;color:white;border:none;padding:5px 10px;border-radius:5px;cursor:pointer;">
+              Delete
+            </button>
+          </td>
+        </tr>
+      `).join("");
+    }
 
-panel.style.display = "block";
+    // SOCKET REALTIME UPDATE
+    socket.on("newLead", (data) => {
+      console.log("New realtime lead received:", data);
+      notifications.unshift(data);
+      if (notifications.length > 10) notifications.pop();
 
-panel.innerHTML = notifications.length
-? notifications.map(n => `
-  <div class="notification-item">
-    <b>${n.name}</b><br>
-    ${n.loanType} - ₹${n.loanAmount}<br>
-    📞 ${n.phone}
-  </div>
-`).join("")
-: "<div class='notification-item'>No new notifications</div>";
+      try {
+        notificationSound.currentTime = 0;
+        notificationSound.play();
+      } catch(e) { console.log("Audio play blocked by browser"); }
 
-});
-</script>
+      notificationCount++;
+      document.getElementById("notifyCount").innerText = notificationCount;
 
+      // Toast Notification
+      const popup = document.createElement("div");
+      popup.className = "toast";
+      popup.innerHTML = `
+        <h3>🔔 New Lead Received</h3>
+        <p><b>${data.name}</b> has applied for a <b>${data.loanType}</b> of <b>₹${data.loanAmount || data.loan}</b></p>
+        <p>📞 ${data.phone}</p>
+      `;
+      document.body.appendChild(popup);
+      setTimeout(() => popup.remove(), 6000);
+
+      // Reload list automatically
+      loadData();
+    });
+
+    // SEARCH BY NAME
+    function searchByName() {
+      let value = document.querySelector(".search-box").value.toLowerCase();
+      let filtered = allData.filter(item => item.name && item.name.toLowerCase().includes(value));
+      render(filtered);
+    }
+
+    // DELETE LEAD
+    async function deleteLead(id) {
+      if (!confirm("Delete this lead?")) return;
+      try {
+        let res = await fetch("https://loan-bxtx.onrender.com/leads/" + id, {
+          method: "DELETE",
+          headers: { "Authorization": `Bearer ${token}` }
+        });
+        let data = await res.json();
+        if (data.success || res.status === 200) {
+          alert("Deleted ✅");
+          loadData();
+        } else {
+          alert("Delete failed ❌");
+        }
+      } catch (error) {
+        alert("Server error ❌");
+      }
+    }
+
+    // NOTIFICATION PANEL TOGGLE
+    document.querySelector(".notification-bell").addEventListener("click", () => {
+      const panel = document.getElementById("notifyPanel");
+      if (panel.style.display === "block") {
+        panel.style.display = "none";
+        return;
+      }
+      panel.style.display = "block";
+      panel.innerHTML = notifications.length
+        ? notifications.map(n => `
+          <div class="notification-item">
+            <b>${n.name}</b><br>
+            ${n.loanType} - ₹${n.loanAmount || n.loan}<br>
+            📞 ${n.phone}
+          </div>
+        `).join("")
+        : "<div class='notification-item'>No new notifications</div>";
+    });
+
+    // LOGOUT
+    function logout() {
+      if (confirm("Are you sure you want to logout?")) {
+        localStorage.removeItem("token");
+        window.location.href = "https://loan-bxtx.onrender.com/admin.html";
+      }
+    }
+
+    // Initial Trigger on Page Load
+    loadData();
+  </script>
 </body>
 </html>
