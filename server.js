@@ -123,6 +123,9 @@ app.post("/admin/login", async (req, res) => {
 function verifyToken(req, res, next) {
   let token = req.headers["authorization"];
 
+  console.log("AUTH HEADER:", token);
+  console.log("JWT SECRET EXISTS:", !!process.env.JWT_SECRET);
+
   if (!token) {
     return res.status(403).json({
       success: false,
@@ -130,16 +133,22 @@ function verifyToken(req, res, next) {
     });
   }
 
-  // REMOVE "Bearer " if present
   if (token.startsWith("Bearer ")) {
     token = token.split(" ")[1];
   }
 
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
+
+    console.log("TOKEN VERIFIED:", decoded);
+
     req.user = decoded;
     next();
+
   } catch (err) {
+
+    console.log("JWT ERROR:", err.message);
+
     return res.status(401).json({
       success: false,
       message: "Invalid token"
