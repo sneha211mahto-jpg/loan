@@ -267,7 +267,7 @@ onkeyup="searchByName()"
 <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
 <script>
   let notificationSound = new Audio("notification.mp3");
-  const socket = io("http://localhost:3000");
+  
 
 let notificationCount = 0;
 
@@ -312,7 +312,7 @@ const token = localStorage.getItem("token");
 
 if (!token) {
   alert("Unauthorized Access ❌ Please login first");
-  window.location.href = "http://localhost:3000/admin.html";
+  window.location.href = "https://loan-bxtx.onrender.com/admin.html";
 }
 
 // LOGOUT
@@ -326,7 +326,7 @@ function logout(){
 
     localStorage.removeItem("token");
 
-    window.location.href = "http://localhost:3000/admin.html";
+    window.location.href = "https://loan-bxtx.onrender.com/admin.html";
 
   }
 }
@@ -334,7 +334,7 @@ function logout(){
 async function loadData(){
 
 try {
-const res = await fetch("http://localhost:3000/leads", {
+const res = await fetch("https://loan-bxtx.onrender.com/leads", {
   headers: {
     "Authorization": token
   }
@@ -398,7 +398,7 @@ async function deleteLead(id) {
 
   try {
 
-    let res = await fetch("http://localhost:3000/leads/" + id, {
+    let res = await fetch("https://loan-bxtx.onrender.com/leads/" + id, {
       method: "DELETE",
       headers: {
         "Authorization": token
